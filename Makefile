@@ -210,3 +210,6 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+debug:
+	dlv debug ./cmd/main.go --headless --listen=:40000 --api-version=2 --accept-multiclient

@@ -64,7 +64,14 @@ spec:
           - --leader-elect
           - --health-probe-bind-address=:8081
         image: controller:latest
+        imagePullPolicy: IfNotPresent
         name: manager
+        env:
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: github-token-secret
+                key: github-token
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

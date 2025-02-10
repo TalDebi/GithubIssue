@@ -8,7 +8,7 @@ metadata:
   name: githubissue-editor-role
 rules:
 - apiGroups:
-  - dana.io.dana.io
+  - githubissue.dana.io
   resources:
   - githubissues
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - dana.io.dana.io
+  - githubissue.dana.io
   resources:
   - githubissues/status
   verbs:
