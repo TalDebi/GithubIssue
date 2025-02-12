@@ -25,30 +25,23 @@ import (
 
 // GithubIssueSpec defines the desired state of GithubIssue.
 type GithubIssueSpec struct {
-	// Repo is the URL of the GitHub repository of the GithubIssue.
-	Repo string `json:"repo"`
-	// Title is the title of the GithubIssue.
-	Title string `json:"title"`
-	// Description is the description of the GithubIssue.
-	Description string `json:"description"`
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// Foo is an example field of GithubIssue. Edit githubissue_types.go to remove/update
+	Foo string `json:"foo,omitempty"`
 }
 
 // GithubIssueStatus defines the observed state of GithubIssue.
 type GithubIssueStatus struct {
-	// Conditions represents the latest available observations of an object's state
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
 // GithubIssue is the Schema for the githubissues API.
-// +kubebuilder:resource:scope=Namespaced,shortName=ghi
-// +kubebuilder:printcolumn:name="Repo",type=string,JSONPath=".spec.repo",description="GitHub Repository",priority=0
-// +kubebuilder:printcolumn:name="Title",type=string,JSONPath=".spec.title",description="Issue Title",priority=0
-// +kubebuilder:printcolumn:name="Description",type=string,JSONPath=".spec.description",description="Issue Description",priority=0
-// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=".status.conditions[?(@.type=='Open')].status",description="Open status",priority=0
-// +kubebuilder:object:generate=true
 type GithubIssue struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -60,7 +53,6 @@ type GithubIssue struct {
 // +kubebuilder:object:root=true
 
 // GithubIssueList contains a list of GithubIssue.
-// +kubebuilder:object:generate=true
 type GithubIssueList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
