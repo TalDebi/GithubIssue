@@ -1,0 +1,11 @@
+apiVersion: github.dana.io/v1alpha1
+kind: Issue
+metadata:
+  labels:
+    app.kubernetes.io/name: issue
+    app.kubernetes.io/managed-by: kustomize
+  name: issue-sample
+spec:
+  repo: "https://github.com/TalDebi/GithubIssue"
+  title: "tal"
+  description: "romeo"

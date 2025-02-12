@@ -1,4 +1,4 @@
 ## Append samples of your project ##
 resources:
-- dana.io_v1alpha1_githubissue.yaml
+- github_v1alpha1_issue.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

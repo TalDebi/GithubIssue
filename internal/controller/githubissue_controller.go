@@ -18,46 +18,151 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
+	danaiov1alpha1 "github.com/TalDebi/GithubIssue/api/v1alpha1"
+	"github.com/TalDebi/GithubIssue/internal/common"
+	"github.com/go-logr/logr"
+	"github.com/google/go-github/v50/github"
+	"golang.org/x/oauth2"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	danaiov1alpha1 "github.com/TalDebi/GithubIssue.git/api/v1alpha1"
 )
 
-// GithubIssueReconciler reconciles a GithubIssue object
-type GithubIssueReconciler struct {
-	client.Client
+// IssueReconciler reconciles a Issue object
+type IssueReconciler struct {
 	Scheme *runtime.Scheme
+	client.Client
+	Log          logr.Logger
+	GitHubClient *github.Client
 }
 
-// +kubebuilder:rbac:groups=dana.io.dana.io,resources=githubissues,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=dana.io.dana.io,resources=githubissues/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=dana.io.dana.io,resources=githubissues/finalizers,verbs=update
+// +kubebuilder:rbac:groups=github.dana.io,resources=issues,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=github.dana.io,resources=issues/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=github.dana.io,resources=issues/finalizers,verbs=update
+// +kubebuilder:rbac:groups="",resources=namespaces,verbs=list;watch;get;update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the GithubIssue object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.1/pkg/reconcile
-func (r *GithubIssueReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+func (r *IssueReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	_ = context.Background()
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	logger.Info("Starting reconciliation for GithubIssue", "Namespace", req.Namespace, "Name", req.Name)
 
-	return ctrl.Result{}, nil
+	githubIssue, err := common.FetchGithubIssue(ctx, r.Client, req.NamespacedName)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if githubIssue == nil {
+		return ctrl.Result{}, nil
+	}
+
+	logger.Info("Fetched GithubIssue", "GithubIssue", githubIssue)
+
+	repoOwner, repoName, err := common.ParseRepoURL(githubIssue.Spec.Repo)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("invalid repository URL: %w", err)
+	}
+
+	logger.Info("repo details", "repoOwner", repoOwner, "repoName", repoName)
+
+	if githubIssue.ObjectMeta.DeletionTimestamp.IsZero() {
+		if !controllerutil.ContainsFinalizer(githubIssue, common.FinalizerName) {
+			controllerutil.AddFinalizer(githubIssue, common.FinalizerName)
+			if err := r.Update(ctx, githubIssue); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		if controllerutil.ContainsFinalizer(githubIssue, common.FinalizerName) {
+			if err := r.handleDelete(ctx, githubIssue); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	logger.Info("Applying Github issue")
+
+	appliedIssue, err := r.applyIssue(ctx, repoOwner, repoName, githubIssue)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	appliedIssueState := appliedIssue.GetState()
+	if err := common.UpdateIssueStatus(
+		r.Client,
+		ctx,
+		githubIssue,
+		appliedIssueState,
+		common.MapIssueStateToConditionStatus(appliedIssueState),
+		"StatusUpdated",
+		"Github issue status has been updated",
+	); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	logger.Info("Github issue has been applied")
+
+	return ctrl.Result{RequeueAfter: common.ResyncPeriod}, nil
+}
+
+// handleDelete handles deletion by closing the GitHub issue
+func (r *IssueReconciler) handleDelete(ctx context.Context, githubIssue *danaiov1alpha1.Issue) error {
+	logger := log.FromContext(ctx)
+
+	if err := r.closeIssue(ctx, githubIssue); err != nil {
+		return fmt.Errorf("failed to close issue: %w", err)
+	}
+
+	if err := r.removeFinalizer(ctx, githubIssue); err != nil {
+		return fmt.Errorf("failed to remove finalizer: %w", err)
+	}
+
+	logger.Info("Deletion handled successfully", "GitHubIssue", githubIssue)
+
+	return nil
+}
+
+// removeFinalizer removes the finalizer from the GitHub issue during the deletion process.
+func (r *IssueReconciler) removeFinalizer(
+	ctx context.Context, githubIssue *danaiov1alpha1.Issue) error {
+	logger := log.FromContext(ctx)
+
+	controllerutil.RemoveFinalizer(githubIssue, common.FinalizerName)
+
+	if err := r.Update(ctx, githubIssue); err != nil {
+		return fmt.Errorf("failed to update NamespaceLabel to remove finalizer: %w", err)
+	}
+
+	logger.Info("Finalizer removed successfully", "GitHubIssue", githubIssue)
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *GithubIssueReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *IssueReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	ctx := context.Background()
+
+	token, err := common.GetGitHubToken()
+	if err != nil {
+		return err
+	}
+
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+
+	r.GitHubClient = github.NewClient(tc)
+
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&danaiov1alpha1.GithubIssue{}).
-		Named("githubissue").
+		For(&danaiov1alpha1.Issue{}).
+		Named("issue").
 		Complete(r)
 }

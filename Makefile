@@ -120,10 +120,10 @@ PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 docker-buildx: ## Build and push docker image for the manager for cross-platform support
 	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
-	- $(CONTAINER_TOOL) buildx create --name githubissue-builder
-	$(CONTAINER_TOOL) buildx use githubissue-builder
+	- $(CONTAINER_TOOL) buildx create --name issue-builder
+	$(CONTAINER_TOOL) buildx use issue-builder
 	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
-	- $(CONTAINER_TOOL) buildx rm githubissue-builder
+	- $(CONTAINER_TOOL) buildx rm issue-builder
 	rm Dockerfile.cross
 
 .PHONY: build-installer
@@ -210,3 +210,6 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+debug:
+	dlv debug ./cmd/main.go --headless --listen=:40000 --api-version=2 --accept-multiclient

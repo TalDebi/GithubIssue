@@ -35,8 +35,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	danaiov1alpha1 "github.com/TalDebi/GithubIssue.git/api/v1alpha1"
-	"github.com/TalDebi/GithubIssue.git/internal/controller"
+	danaiov1alpha1 "github.com/TalDebi/GithubIssue/api/v1alpha1"
+	"github.com/TalDebi/GithubIssue/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -142,11 +142,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.GithubIssueReconciler{
+	if err = (&controller.IssueReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "GithubIssue")
+		setupLog.Error(err, "unable to create controller", "controller", "Issue")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

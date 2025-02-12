@@ -1,0 +1,27 @@
+# permissions for end users to edit issues.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: issue
+    app.kubernetes.io/managed-by: kustomize
+  name: issue-editor-role
+rules:
+- apiGroups:
+  - github.dana.io
+  resources:
+  - issues
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - github.dana.io
+  resources:
+  - issues/status
+  verbs:
+  - get

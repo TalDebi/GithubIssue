@@ -23,18 +23,18 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// GithubIssueSpec defines the desired state of GithubIssue.
-type GithubIssueSpec struct {
-	// Repo is the URL of the GitHub repository of the GithubIssue.
+// IssueSpec defines the desired state of Issue.
+type IssueSpec struct {
+	// Repo is the URL of the GitHub repository of the Issue.
 	Repo string `json:"repo"`
-	// Title is the title of the GithubIssue.
+	// Title is the title of the Issue.
 	Title string `json:"title"`
-	// Description is the description of the GithubIssue.
+	// Description is the description of the Issue.
 	Description string `json:"description"`
 }
 
-// GithubIssueStatus defines the observed state of GithubIssue.
-type GithubIssueStatus struct {
+// IssueStatus defines the observed state of Issue.
+type IssueStatus struct {
 	// Conditions represents the latest available observations of an object's state
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
@@ -42,31 +42,32 @@ type GithubIssueStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// GithubIssue is the Schema for the githubissues API.
+// Issue is the Schema for the issues API.
 // +kubebuilder:resource:scope=Namespaced,shortName=ghi
 // +kubebuilder:printcolumn:name="Repo",type=string,JSONPath=".spec.repo",description="GitHub Repository",priority=0
 // +kubebuilder:printcolumn:name="Title",type=string,JSONPath=".spec.title",description="Issue Title",priority=0
 // +kubebuilder:printcolumn:name="Description",type=string,JSONPath=".spec.description",description="Issue Description",priority=0
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=".status.conditions[?(@.type=='Open')].status",description="Open status",priority=0
+// +kubebuilder:validation:XValidation:rule="self.spec.repo.matches('^https://github.com/[a-zA-Z0-9-_]+/[a-zA-Z0-9-_]+$')",message="Invalid GitHub repository URL format. Must be like https://github.com/owner/repo"
 // +kubebuilder:object:generate=true
-type GithubIssue struct {
+type Issue struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   GithubIssueSpec   `json:"spec,omitempty"`
-	Status GithubIssueStatus `json:"status,omitempty"`
+	Spec   IssueSpec   `json:"spec,omitempty"`
+	Status IssueStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// GithubIssueList contains a list of GithubIssue.
+// IssueList contains a list of Issue.
 // +kubebuilder:object:generate=true
-type GithubIssueList struct {
+type IssueList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []GithubIssue `json:"items"`
+	Items           []Issue `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&GithubIssue{}, &GithubIssueList{})
+	SchemeBuilder.Register(&Issue{}, &IssueList{})
 }

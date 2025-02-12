@@ -5,16 +5,16 @@
 domain: dana.io
 layout:
 - go.kubebuilder.io/v4
-projectName: githubissue
-repo: github.com/TalDebi/GithubIssue.git
+projectName: issue
+repo: github.com/TalDebi/GithubIssue
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: dana.io
-  group: dana.io
-  kind: GithubIssue
-  path: github.com/TalDebi/GithubIssue.git/api/v1alpha1
+  group: github
+  kind: Issue
+  path: github.com/TalDebi/GithubIssue/api/v1alpha1
   version: v1alpha1
 version: "3"

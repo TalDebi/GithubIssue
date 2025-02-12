@@ -5,9 +5,18 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - dana.io.dana.io
+  - ""
   resources:
-  - githubissues
+  - namespaces
+  verbs:
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - github.dana.io
+  resources:
+  - issues
   verbs:
   - create
   - delete
@@ -17,15 +26,15 @@ rules:
   - update
   - watch
 - apiGroups:
-  - dana.io.dana.io
+  - github.dana.io
   resources:
-  - githubissues/finalizers
+  - issues/finalizers
   verbs:
   - update
 - apiGroups:
-  - dana.io.dana.io
+  - github.dana.io
   resources:
-  - githubissues/status
+  - issues/status
   verbs:
   - get
   - patch
