@@ -13,7 +13,7 @@ resources:
     namespaced: true
   controller: true
   domain: dana.io
-  group: githubissue
+  group: dana.io
   kind: GithubIssue
   path: github.com/TalDebi/GithubIssue.git/api/v1alpha1
   version: v1alpha1

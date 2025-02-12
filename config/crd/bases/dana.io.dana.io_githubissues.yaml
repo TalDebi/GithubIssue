@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.4
-  name: githubissues.githubissue.dana.io
+  name: githubissues.dana.io.dana.io
 spec:
-  group: githubissue.dana.io
+  group: dana.io.dana.io
   names:
     kind: GithubIssue
     listKind: GithubIssueList

@@ -1,4 +1,4 @@
-apiVersion: githubissue.dana.io/v1alpha1
+apiVersion: dana.io.dana.io/v1alpha1
 kind: GithubIssue
 metadata:
   labels:
@@ -6,6 +6,4 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: githubissue-sample
 spec:
-  repo: "https://github.com/TalDebi/GithubIssue"
-  title: "title"
-  description: "description"
+  # TODO(user): Add fields here
